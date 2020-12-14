@@ -23,9 +23,8 @@ def main(args: List[str]) -> None:
     filtered: NaiveBayesBOW = NaiveBayesBOW(training, name="NB-BOW-FV", min_occurrence=2)
 
     # Ensure results directory exists
-    results_directory = "results/"
-    Path(results_directory).mkdir(parents=True, exist_ok=True)
-    # Test
+    Path("results/").mkdir(parents=True, exist_ok=True)
+    # Testing
     original.classify_all(test, "results")
     filtered.classify_all(test, "results")
 
