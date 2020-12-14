@@ -29,6 +29,13 @@ def get_dataset(path: str, has_header: bool = False) -> List[Tweet]:
             if has_header:
                 next(reader)
             # Get all data: get tweet id, tokenize tweet, remove empty strings, get class
-            return [Tweet(row[0], list(filter(None, row[1].lower().split(' '))), row[2] == "yes") for row in reader]
+            dataset: List[Tweet] = [Tweet(row[0], list(filter(None, row[1].lower().split(' '))), row[2] == "yes") for row in reader]
+            # Print info about the dataset
+            print(f'Info for dataset "{path}"')
+            print(f"Length:          {len(dataset)}")
+            print(f"Word count:      {sum(len(tweet) for tweet in dataset)}")
+            print(f'Count for "yes": {sum(1 for tweet in dataset if tweet.is_factual)}')
+            print(f'Count for "no":  {sum(1 for tweet in dataset if not tweet.is_factual)}\n')
+            return dataset
     except Exception as e:
         print(f"Error while parsing dataset\n{str(e)}")

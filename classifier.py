@@ -11,7 +11,7 @@ class Class:
     Naive-Bayes Classifier result Class
     """
 
-    def __init__(self, vocabulary: Counter, tweets: List[List[str]], total_tweets: int, delta: float) -> None:
+    def __init__(self, vocabulary: Counter, tweets: List[List[str]], total_tweets: int, delta: float, name: str) -> None:
         """
         Creates a new category for a specific class
         :param vocabulary:   Vocabulary of the classifier
@@ -22,13 +22,15 @@ class Class:
 
         # Calculate the prior
         self.prior: Final[float] = math.log10(len(tweets) / total_tweets)
+        print(f"Prior for class {name}: {len(tweets) / total_tweets:.5}")
 
         # Calculate the word frequency within the class
         frequencies: Counter[str] = Counter()
-        word_count: float = 0.0
+        word_count: float = 0
         for tweet in tweets:
             word_count += len(tweet)
             frequencies.update(filter(vocabulary.__contains__, tweet))
+        print(f"Word count for class {name}: {word_count}")
 
         # Add smoothing to the word count
         word_count += len(vocabulary) * delta
@@ -37,13 +39,14 @@ class Class:
         for word in vocabulary.keys():
             self.conditionals[word] = math.log10((frequencies[word] + delta) / word_count)
 
-    def score(self, tweet: List[str]):
+    def score(self, tweet: List[str]) -> float:
         """
         Calculates the score of a tweet
         :param tweet: Tweet text to score
         :return:      The score of the tweet
         """
 
+        # Add the log of the prior and the conditional for each word
         return self.prior + sum(self.conditionals[word] for word in tweet)
 
 
@@ -62,24 +65,25 @@ class NaiveBayesBOW:
         """
 
         # Start by creating vocabulary
-        print(f"Training Naive-Bayes Bag-of-Words model for {name}...")
         self.name: str = name
-        self.vocabulary: Counter[str] = Counter(chain.from_iterable([tweet.text for tweet in tweets]))
-
+        print(f"Training Naive-Bayes Bag-of-Words model for {self.name}...")
+        vocabulary: Counter[str] = Counter(chain.from_iterable([tweet.text for tweet in tweets]))
         # Filter out words that do not appear enough
         filtered: List[str] = []
-        for word, count in self.vocabulary.items():
+        for word, count in vocabulary.items():
             if count < min_occurrence:
                 filtered.append(word)
 
         # Remove filtered words
         for word in filtered:
-            del self.vocabulary[word]
+            del vocabulary[word]
+        print(f"Vocabulary length for {self.name}: {len(vocabulary)}")
 
         # Create all classes
         total_tweets: int = len(tweets)
-        self.factual: Class = Class(self.vocabulary, [tweet.text for tweet in tweets if tweet.is_factual], total_tweets, delta)
-        self.not_factual: Class = Class(self.vocabulary, [tweet.text for tweet in tweets if not tweet.is_factual], total_tweets, delta)
+        self.factual: Class = Class(vocabulary, [tweet.text for tweet in tweets if tweet.is_factual], total_tweets, delta, "yes")
+        self.not_factual: Class = Class(vocabulary, [tweet.text for tweet in tweets if not tweet.is_factual], total_tweets, delta, "no")
+        print()  # Adding a linefeed
 
     def classify(self, tweet: Tweet) -> Tuple[bool, float]:
         """
