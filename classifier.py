@@ -52,15 +52,18 @@ class NaiveBayesBOW:
     A Naive-Bayes Bag of Words classifier
     """
 
-    def __init__(self, tweets: List[Tweet], min_occurrence: int = 1, delta: float = 0.01) -> None:
+    def __init__(self, tweets: List[Tweet], min_occurrence: int = 1, delta: float = 0.01, name: str = "NB-BOW") -> None:
         """
         Creates a new Classifier with the specified documents
         :param tweets:         Tweets to create the classifier with
         :param min_occurrence: Minimum number of occurrences for a word to be considered in the vocabulary, defaults to 1
         :param delta:          Smoothing parameter, defaults to 0.01
+        :param name:           Name of the model for trace and file storage purpose
         """
 
         # Start by creating vocabulary
+        print(f"Training Naive-Bayes Bag-of-Words model for {name}...")
+        self.name: str = name
         self.vocabulary: Counter[str] = Counter(chain.from_iterable([tweet.text for tweet in tweets]))
 
         # Filter out words that do not appear enough
@@ -90,17 +93,17 @@ class NaiveBayesBOW:
         score_not_factual: float = self.not_factual.score(tweet.text)
         return score_factual > score_not_factual, max(score_factual, score_not_factual)
 
-    def classify_all(self, tweets: List[Tweet], folder: str, file: str) -> None:
+    def classify_all(self, tweets: List[Tweet], folder: str) -> None:
         """
         Classifies all the passed tweets and writes the results to the disk
         :param tweets: Tweets to classify
         :param folder: Folder to store the results in
-        :param file:   File name for results
         """
 
         # Store results
+        print(f"\nClassifying test set for Naive-Bayes Bag-of-Words model {self.name}...")
         results: List[bool] = []
-        with open(f"{folder}/trace_{file}", 'w') as f:
+        with open(f"{folder}/trace_{self.name}.txt", 'w') as f:
             # Classify each tweet
             for tweet in tweets:
                 result, score = self.classify(tweet)
@@ -109,8 +112,9 @@ class NaiveBayesBOW:
                 results.append(result)
 
         # Store metrics
+        print(f"Saving metrics data for Naive-Bayes Bag-of-Words model {self.name}...")
         expected: List[bool] = [tweet.is_factual for tweet in tweets]
-        with open(f"{folder}/eval_{file}", 'w') as f:
+        with open(f"{folder}/eval_{self.name}.txt", 'w') as f:
             f.write(f"{accuracy(results, expected)}\r")
             f.write(f"{precision(results, expected, True)}  {precision(results, expected, False)}\r")
             f.write(f"{recall(results, expected, True)}  {recall(results, expected, False)}\r")

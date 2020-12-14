@@ -1,25 +1,37 @@
+import sys
 from classifier import NaiveBayesBOW
 from datasets import get_dataset, Tweet
 from pathlib import Path
 from typing import List
 
 
-def main() -> None:
-    # Get training set and train models
-    training: List[Tweet] = get_dataset("data/covid_training.tsv", has_header=True)
-    original: NaiveBayesBOW = NaiveBayesBOW(training)
-    filtered: NaiveBayesBOW = NaiveBayesBOW(training, min_occurrence=2)
+def main(args: List[str]) -> None:
+    """
+    Program entry point
+    :param args: Program arguments
+    """
+
+    # Get path to training and testing files
+    training_path: str = args[1] if len(args) >= 2 else "data/covid_training.tsv"
+    testing_path: str  = args[2] if len(args) >= 3 else "data/covid_test_public.tsv"
+
+    # Get datasets
+    training: List[Tweet] = get_dataset(training_path, has_header=True)
+    test: List[Tweet] = get_dataset(testing_path)
+    # Train models
+    original: NaiveBayesBOW = NaiveBayesBOW(training, name="NB-BOW-OV")
+    filtered: NaiveBayesBOW = NaiveBayesBOW(training, name="NB-BOW-FV", min_occurrence=2)
 
     # Ensure results directory exists
     results_directory = "results/"
     Path(results_directory).mkdir(parents=True, exist_ok=True)
+    # Test
+    original.classify_all(test, "results")
+    filtered.classify_all(test, "results")
 
-    # Get testing set and verify
-    test: List[Tweet] = get_dataset("data/covid_test_public.tsv")
-    original.classify_all(test, "results", "NB-BOW-OV.txt")
-    filtered.classify_all(test, "results", "NB-BOW-FV.txt")
-    pass
+    # Exit
+    print("\nData processing complete!")
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)

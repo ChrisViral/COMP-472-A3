@@ -20,11 +20,15 @@ def get_dataset(path: str, has_header: bool = False) -> List[Tweet]:
     :return: A list of all the loaded tweets
     """
 
-    with open(path, 'r', newline='', encoding="utf-8") as tsv_file:
-        # Open the .tsv file for reading
-        reader = csv.reader(tsv_file, delimiter='\t')
-        # Skip the first line if necessary
-        if has_header:
-            next(reader)
-        # Get all data: get tweet id, tokenize tweet, remove empty strings, get class
-        return [Tweet(row[0], list(filter(None, row[1].lower().split(' '))), row[2] == "yes") for row in reader]
+    try:
+        print(f"Parsing dataset {path}...")
+        with open(path, 'r', newline='', encoding="utf-8") as tsv_file:
+            # Open the .tsv file for reading
+            reader = csv.reader(tsv_file, delimiter='\t')
+            # Skip the first line if necessary
+            if has_header:
+                next(reader)
+            # Get all data: get tweet id, tokenize tweet, remove empty strings, get class
+            return [Tweet(row[0], list(filter(None, row[1].lower().split(' '))), row[2] == "yes") for row in reader]
+    except Exception as e:
+        print(f"Error while parsing dataset\n{str(e)}")
