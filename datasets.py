@@ -1,3 +1,4 @@
+from __future__ import annotations
 import csv
 from typing import List, NamedTuple
 
@@ -10,6 +11,19 @@ class Tweet(NamedTuple):
     id: str
     text: List[str]
     is_factual: bool
+
+    @staticmethod
+    def from_row(row: List[str]) -> Tweet:
+        """
+        Makes a new tweet from a dataset row
+        :param row: Row to make the tweet from
+        :return:    Created tweet
+        """
+
+        # Filter out empty strings from the text
+        text: List[str] = list(filter(None, row[1].lower().split(' ')))
+        factual: bool = row[2] == "yes"
+        return Tweet(row[0], text, factual)
 
 
 def get_dataset(path: str, has_header: bool = False) -> List[Tweet]:
@@ -29,7 +43,7 @@ def get_dataset(path: str, has_header: bool = False) -> List[Tweet]:
             if has_header:
                 next(reader)
             # Get all data: get tweet id, tokenize tweet, remove empty strings, get class
-            dataset: List[Tweet] = [Tweet(row[0], list(filter(None, row[1].lower().split(' '))), row[2] == "yes") for row in reader]
+            dataset: List[Tweet] = [Tweet.from_row(row) for row in reader]
             # Print info about the dataset
             print(f'Info for dataset "{path}"')
             print(f"Length:          {len(dataset)}")
